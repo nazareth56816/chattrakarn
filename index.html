@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Student Management System (All-in-One)</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ======= Topbar (visible when logged in) ======= -->
+<header class="topbar" id="appTopbar" style="display:none">
+  <div class="brand">🎓 Student Management System</div>
+  <nav class="nav">
+    <a href="#/home" data-link>Home</a>
+    <a href="#/add" data-link>Add Student</a>
+    <a href="#/students" data-link>View Students</a>
+    <button id="logoutBtn" class="btn">🚪 Logout</button>
+  </nav>
+</header>
+
+<!-- ================= VIEWS ================= -->
+
+<!-- LOGIN -->
+<section id="view-login" class="auth-wrap">
+  <div class="auth-card card" style="width:min(520px,92vw)">
+    <h1>เข้าสู่ระบบ</h1>
+    <p class="muted">กรุณาเข้าสู่ระบบก่อนใช้งานระบบจัดการนักศึกษา</p>
+    <form id="login-form" class="form-grid" novalidate>
+      <label>ชื่อผู้ใช้
+        <input id="login-username" type="text" placeholder="เช่น student01" required/>
+      </label>
+      <label>รหัสผ่าน
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="login-password" type="password" placeholder="••••••••" required style="flex:1"/>
+          <button id="login-toggle" class="btn" type="button" title="แสดง/ซ่อน">👁️</button>
+        </div>
+      </label>
+      <div class="form-actions">
+        <button class="btn primary" type="submit">🔐 เข้าสู่ระบบ</button>
+        <a class="btn" href="#/register">📝 สมัครสมาชิก</a>
+      </div>
+      <p id="login-msg" class="form-msg" role="alert"></p>
+    </form>
+  </div>
+</section>
+
+<!-- REGISTER -->
+<section id="view-register" class="auth-wrap hidden">
+  <div class="auth-card card" style="width:min(560px,92vw)">
+    <h1>สมัครสมาชิก</h1>
+    <p class="muted">สร้างบัญชีใหม่เพื่อเข้าใช้งานระบบ</p>
+    <form id="register-form" class="form-grid" novalidate>
+      <label>ชื่อ-สกุล
+        <input id="reg-name" name="name" type="text" placeholder="เช่น Somchai Jaidee" required/>
+      </label>
+      <label>ชื่อผู้ใช้
+        <input id="reg-username" name="username" type="text" placeholder="เช่น student01" required minlength="4"/>
+      </label>
+      <label>รหัสผ่าน
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="reg-password" name="password" type="password" placeholder="อย่างน้อย 8 ตัว" required minlength="8" style="flex:1"/>
+          <button id="togglePass" class="btn" type="button" title="แสดง/ซ่อน">👁️</button>
+        </div>
+        <small class="muted">ควรมี ตัวพิมพ์ใหญ่/เล็ก ตัวเลข และอักขระพิเศษ</small>
+        <div class="strength-wrap" style="display:flex;gap:10px;align-items:center;margin-top:8px">
+          <div id="passBar" style="flex:1;height:10px;border-radius:999px;background:#243247;overflow:hidden">
+            <div id="passBarIn" style="height:100%;width:0%;background:linear-gradient(90deg,#ff5959,#ffd166,#06d6a0,#1e90ff);transition:width .25s"></div>
+          </div>
+          <span id="passTxt" class="muted">ความแข็งแรง: -</span>
+        </div>
+      </label>
+      <label>ยืนยันรหัสผ่าน
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="reg-confirm" name="confirm" type="password" placeholder="พิมพ์รหัสผ่านอีกครั้ง" required style="flex:1"/>
+          <button id="toggleConfirm" class="btn" type="button" title="แสดง/ซ่อน">👁️</button>
+        </div>
+      </label>
+      <label style="grid-column:1/-1;display:flex;gap:10px;align-items:center">
+        <input id="agree" type="checkbox" required/>
+        <span>ฉันยอมรับข้อกำหนดการใช้งาน</span>
+      </label>
+      <div class="form-actions">
+        <button id="reg-submit" class="btn primary" type="submit" disabled>✅ สมัครสมาชิก</button>
+        <a class="btn" href="#/login">↩ กลับเข้าสู่ระบบ</a>
+      </div>
+      <p id="reg-msg" class="form-msg" role="alert"></p>
+    </form>
+  </div>
+</section>
+
+<!-- HOME -->
+<section id="view-home" class="hidden">
+  <main class="container">
+    <section class="hero">
+      <h1>ยินดีต้อนรับ, <span id="currentUserName">User</span></h1>
+      <p>ระบบจัดการนักศึกษาฉบับฝึกปฏิบัติ (ต้องล็อกอินก่อนใช้งาน)</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#/add">➕ เพิ่มข้อมูลนักศึกษา</a>
+        <a class="btn" href="#/students">📋 แสดงข้อมูลนักศึกษา</a>
+      </div>
+    </section>
+    <section class="info-grid">
+      <article class="card"><h3>เพิ่มข้อมูล</h3><p>กรอก ชื่อ–สกุล, รหัส, สาขา, เบอร์, อีเมล แล้วบันทึก</p></article>
+      <article class="card"><h3>ค้นหา/แก้ไข/ลบ</h3><p>ค้นหาเร็ว แก้ไขหรือลบได้จากหน้ารายการ</p></article>
+      <article class="card"><h3>Pop-up สวัสดี</h3><p>แสดงรูปครูสวัสดีเมื่อเข้าหน้าแรก</p></article>
+    </section>
+  </main>
+
+  <!-- Welcome Modal -->
+  <div id="welcomeModal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <!-- Inline SVG teacher -->
+      <svg class="teacher" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="ครูยืนสวัสดี">
+        <circle cx="100" cy="60" r="28" fill="#ffd6a0"/>
+        <rect x="60" y="95" width="80" height="70" rx="16" fill="#1e90ff"/>
+        <rect x="80" y="160" width="18" height="25" fill="#444"/>
+        <rect x="102" y="160" width="18" height="25" fill="#444"/>
+        <circle cx="92" cy="55" r="3" fill="#333"/>
+        <circle cx="108" cy="55" r="3" fill="#333"/>
+        <path d="M92,68 Q100,74 108,68" stroke="#333" stroke-width="3" fill="none"/>
+        <!-- left arm -->
+        <rect x="45" y="100" width="16" height="45" rx="8" fill="#1e90ff"/>
+        <!-- right arm waving -->
+        <g class="wave">
+          <rect x="138" y="88" width="16" height="45" rx="8" fill="#1e90ff"/>
+          <circle cx="146" cy="82" r="8" fill="#ffd6a0"/>
+        </g>
+      </svg>
+      <h2>สวัสดีจ้ะนักเรียน 👋</h2>
+      <p>ยินดีต้อนรับเข้าสู่ระบบจัดการนักศึกษา</p>
+    </div>
+  </div>
+</section>
+
+<!-- ADD / EDIT -->
+<section id="view-add" class="hidden">
+  <main class="container">
+    <h1 id="form-title">เพิ่มข้อมูลนักศึกษา</h1>
+    <form id="student-form" class="card form-grid" novalidate>
+      <input type="hidden" id="studentId"/>
+      <label>รหัสนักศึกษา
+        <input id="code" type="text" placeholder="เช่น 66010001" required/>
+      </label>
+      <label>ชื่อ
+        <input id="firstName" type="text" placeholder="ชื่อ" required/>
+      </label>
+      <label>สกุล
+        <input id="lastName" type="text" placeholder="นามสกุล" required/>
+      </label>
+      <label>สาขาวิชา
+        <input id="major" type="text" placeholder="เช่น IT / CS / ELEC" required/>
+      </label>
+      <label>เบอร์โทร
+        <input id="phone" type="tel" placeholder="0812345678" pattern="^[0-9]{9,10}$" required/>
+      </label>
+      <label>อีเมล
+        <input id="email" type="email" placeholder="name@example.com" required/>
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">💾 บันทึก</button>
+        <a class="btn" href="#/students">📋 ไปที่รายการ</a>
+      </div>
+      <p id="form-msg" class="form-msg" role="alert"></p>
+    </form>
+  </main>
+</section>
+
+<!-- STUDENTS -->
+<section id="view-students" class="hidden">
+  <main class="container">
+    <h1>ข้อมูลนักศึกษา</h1>
+    <div class="toolbar card">
+      <input id="search" type="search" placeholder="ค้นหาชื่อ / นามสกุล / รหัสนักศึกษา..." />
+      <div class="toolbar-actions">
+        <button id="export-json" class="btn">⬇️ Export JSON</button>
+        <button id="clear-all" class="btn danger">🗑️ ลบทั้งหมด</button>
+      </div>
+    </div>
+    <div class="table-wrapper card">
+      <table class="table" id="students-table">
+        <thead><tr>
+          <th>รหัส</th><th>ชื่อ-สกุล</th><th>สาขา</th><th>เบอร์</th><th>อีเมล</th><th class="center">จัดการ</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <p id="empty" class="muted">ยังไม่มีข้อมูล ลองเพิ่มที่หน้า <a href="#/add">Add Student</a></p>
+    </div>
+  </main>
+</section>
+
+<footer class="footer">© 2025 Student Management System (Front-end, Single-File)</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
