@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Student Management System (All-in-One)</title>
+<style>
+:root{
+  --bg:#000000; --surface:#ffffff; --surface-2:#000000;
+  --text:#3300ff; --muted:#002efd;
+  --primary:#1e90ff; --primary-2:#156bd1; --danger:#ff4747;
+  --radius:14px; --shadow:0 8px 24px rgba(132, 132, 132, 0.7);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(180deg,var(--bg),#0f1624);color:var(--text);line-height:1.55}
+a{color:var(--primary);text-decoration:none}
+a:hover{opacity:.9}
+button{font:inherit}
+
+.container{max-width:1050px;margin:24px auto;padding:0 16px}
+.card{background:var(--surface);padding:18px;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid #1a2438}
+.btn{display:inline-block;border:1px solid #5749be;background:var(--surface-2);color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.2s}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--primary);border-color:var(--primary-2);color:#cdb9c6}
+.btn.danger{background:#d2bacd;border-color:#c4a1bd;color:#caa7c2}
+
+.topbar{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:rgba(17,23,35,.8);backdrop-filter:saturate(120%) blur(8px);border-bottom:1px solid #1d2a40}
+.brand{font-weight:700}
+.nav a,.nav .btn{margin-left:10px;padding:8px 12px;border-radius:10px}
+.nav a.active,.nav a:hover{background:var(--surface-2);color:#362633}
+.footer{padding:20px;text-align:center;color:var(--muted)}
+
+.hero{padding:36px;border-radius:var(--radius);background:radial-gradient(1200px 400px at 0% 0%, rgba(30,144,255,.18), transparent 50%),radial-gradient(900px 350px at 100% 0%, rgba(30,144,255,.12), transparent 60%),var(--surface);box-shadow:var(--shadow);text-align:center}
+.hero-actions{margin-top:18px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+@media (max-width:900px){.info-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:620px){.info-grid{grid-template-columns:1fr}}
+
+.form-grid{display:grid;gap:14px;grid-template-columns:repeat(2,1fr)}
+.form-grid label{display:flex;flex-direction:column;gap:6px;font-size:.95rem}
+.form-grid input{padding:12px;border-radius:10px;border:1px solid #838588;background:#0e1522;color:var(--text)}
+.form-grid .form-actions{grid-column:1 / -1;display:flex;gap:10px;flex-wrap:wrap}
+.form-msg{grid-column:1/-1;margin:6px 0 0}
+@media (max-width:700px){.form-grid{grid-template-columns:1fr}}
+input:is(:focus,:focus-visible){outline:2px solid var(--primary); outline-offset:2px; border-color:var(--primary-2)!important; box-shadow:0 0 0 2px rgba(30,144,255,.2)}
+
+.auth-wrap{min-height:calc(100vh - 64px);display:grid;place-items:center;padding:20px}
+
+.toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.toolbar input[type=search]{flex:1;min-width:220px;padding:10px;border-radius:10px;border:1px solid #2a3b5f;background:#0e1522;color:var(--text)}
+.toolbar .toolbar-actions{display:flex;gap:8px}
+
+.table-wrapper{overflow:auto}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:12px;border-bottom:1px solid #22304a}
+.table th{background:#0f1a2a;text-align:left}
+.center{text-align:center}
+.muted{color:var(--muted)}
+
+/* Popup Modal */
+.modal{display:none;position:fixed;z-index:999;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.6);justify-content:center;align-items:center;animation:fadeIn .35s ease}
+.modal-content{background:var(--surface);padding:22px 26px;border-radius:var(--radius);box-shadow:var(--shadow);text-align:center;color:var(--text);max-width:360px;position:relative;animation:slideDown .35s ease}
+.close{position:absolute;right:15px;top:10px;font-size:24px;color:var(--muted);cursor:pointer}
+.close:hover{color:var(--primary)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Teacher SVG */
+.teacher{width:180px;height:auto;margin-bottom:10px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
+.wave{transform-origin: 140px 70px; animation: wave 1.8s ease-in-out infinite}
+@keyframes wave{0%,100%{transform:rotate(0deg)}50%{transform:rotate(12deg)}}
+
+/* Small helpers */
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ======= Topbar (visible when logged in) ======= -->
+<header class="topbar" id="appTopbar" style="display:none">
+  <div class="brand">🎓 Student Management System</div>
+  <nav class="nav">
+    <a href="#/home" data-link>Home</a>
+    <a href="#/add" data-link>Add Student</a>
+    <a href="#/students" data-link>View Students</a>
+    <button id="logoutBtn" class="btn">🚪 Logout</button>
+  </nav>
+</header>
+
+<!-- ================= VIEWS ================= -->
+
+<!-- LOGIN -->
+<section id="view-login" class="auth-wrap">
+  <div class="auth-card card" style="width:min(520px,92vw)">
+    <h1>เข้าสู่ระบบ</h1>
+    <p class="muted">กรุณาเข้าสู่ระบบก่อนใช้งานระบบจัดการนักศึกษา</p>
+    <form id="login-form" class="form-grid" novalidate>
+      <label>ชื่อผู้ใช้
+        <input id="login-username" type="text" placeholder="เช่น student01" required/>
+      </label>
+      <label>รหัสผ่าน
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="login-password" type="password" placeholder="••••••••" required style="flex:1"/>
+          <button id="login-toggle" class="btn" type="button" title="แสดง/ซ่อน">👁️</button>
+        </div>
+      </label>
+      <div class="form-actions">
+        <button class="btn primary" type="submit">🔐 เข้าสู่ระบบ</button>
+        <a class="btn" href="#/register">📝 สมัครสมาชิก</a>
+      </div>
+      <p id="login-msg" class="form-msg" role="alert"></p>
+    </form>
+  </div>
+</section>
+
+<!-- REGISTER -->
+<section id="view-register" class="auth-wrap hidden">
+  <div class="auth-card card" style="width:min(560px,92vw)">
+    <h1>สมัครสมาชิก</h1>
+    <p class="muted">สร้างบัญชีใหม่เพื่อเข้าใช้งานระบบ</p>
+    <form id="register-form" class="form-grid" novalidate>
+      <label>ชื่อ-สกุล
+        <input id="reg-name" name="name" type="text" placeholder="เช่น Somchai Jaidee" required/>
+      </label>
+      <label>ชื่อผู้ใช้
+        <input id="reg-username" name="username" type="text" placeholder="เช่น student01" required minlength="4"/>
+      </label>
+      <label>รหัสผ่าน
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="reg-password" name="password" type="password" placeholder="อย่างน้อย 8 ตัว" required minlength="8" style="flex:1"/>
+          <button id="togglePass" class="btn" type="button" title="แสดง/ซ่อน">👁️</button>
+        </div>
+        <small class="muted">ควรมี ตัวพิมพ์ใหญ่/เล็ก ตัวเลข และอักขระพิเศษ</small>
+        <div class="strength-wrap" style="display:flex;gap:10px;align-items:center;margin-top:8px">
+          <div id="passBar" style="flex:1;height:10px;border-radius:999px;background:#243247;overflow:hidden">
+            <div id="passBarIn" style="height:100%;width:0%;background:linear-gradient(90deg,#ff5959,#ffd166,#06d6a0,#1e90ff);transition:width .25s"></div>
+          </div>
+          <span id="passTxt" class="muted">ความแข็งแรง: -</span>
+        </div>
+      </label>
+      <label>ยืนยันรหัสผ่าน
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="reg-confirm" name="confirm" type="password" placeholder="พิมพ์รหัสผ่านอีกครั้ง" required style="flex:1"/>
+          <button id="toggleConfirm" class="btn" type="button" title="แสดง/ซ่อน">👁️</button>
+        </div>
+      </label>
+      <label style="grid-column:1/-1;display:flex;gap:10px;align-items:center">
+        <input id="agree" type="checkbox" required/>
+        <span>ฉันยอมรับข้อกำหนดการใช้งาน</span>
+      </label>
+      <div class="form-actions">
+        <button id="reg-submit" class="btn primary" type="submit" disabled>✅ สมัครสมาชิก</button>
+        <a class="btn" href="#/login">↩ กลับเข้าสู่ระบบ</a>
+      </div>
+      <p id="reg-msg" class="form-msg" role="alert"></p>
+    </form>
+  </div>
+</section>
+
+<!-- HOME -->
+<section id="view-home" class="hidden">
+  <main class="container">
+    <section class="hero">
+      <h1>ยินดีต้อนรับ, <span id="currentUserName">User</span></h1>
+      <p>ระบบจัดการนักศึกษาฉบับฝึกปฏิบัติ (ต้องล็อกอินก่อนใช้งาน)</p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#/add">➕ เพิ่มข้อมูลนักศึกษา</a>
+        <a class="btn" href="#/students">📋 แสดงข้อมูลนักศึกษา</a>
+      </div>
+    </section>
+    <section class="info-grid">
+      <article class="card"><h3>เพิ่มข้อมูล</h3><p>กรอก ชื่อ–สกุล, รหัส, สาขา, เบอร์, อีเมล แล้วบันทึก</p></article>
+      <article class="card"><h3>ค้นหา/แก้ไข/ลบ</h3><p>ค้นหาเร็ว แก้ไขหรือลบได้จากหน้ารายการ</p></article>
+      <article class="card"><h3>Pop-up สวัสดี</h3><p>แสดงรูปครูสวัสดีเมื่อเข้าหน้าแรก</p></article>
+    </section>
+  </main>
+
+  <!-- Welcome Modal -->
+  <div id="welcomeModal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <!-- Inline SVG teacher -->
+      <svg class="teacher" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="ครูยืนสวัสดี">
+        <circle cx="100" cy="60" r="28" fill="#ffd6a0"/>
+        <rect x="60" y="95" width="80" height="70" rx="16" fill="#1e90ff"/>
+        <rect x="80" y="160" width="18" height="25" fill="#444"/>
+        <rect x="102" y="160" width="18" height="25" fill="#444"/>
+        <circle cx="92" cy="55" r="3" fill="#333"/>
+        <circle cx="108" cy="55" r="3" fill="#333"/>
+        <path d="M92,68 Q100,74 108,68" stroke="#333" stroke-width="3" fill="none"/>
+        <!-- left arm -->
+        <rect x="45" y="100" width="16" height="45" rx="8" fill="#1e90ff"/>
+        <!-- right arm waving -->
+        <g class="wave">
+          <rect x="138" y="88" width="16" height="45" rx="8" fill="#1e90ff"/>
+          <circle cx="146" cy="82" r="8" fill="#ffd6a0"/>
+        </g>
+      </svg>
+      <h2>สวัสดีจ้ะนักเรียน 👋</h2>
+      <p>ยินดีต้อนรับเข้าสู่ระบบจัดการนักศึกษา</p>
+    </div>
+  </div>
+</section>
+
+<!-- ADD / EDIT -->
+<section id="view-add" class="hidden">
+  <main class="container">
+    <h1 id="form-title">เพิ่มข้อมูลนักศึกษา</h1>
+    <form id="student-form" class="card form-grid" novalidate>
+      <input type="hidden" id="studentId"/>
+      <label>รหัสนักศึกษา
+        <input id="code" type="text" placeholder="เช่น 66010001" required/>
+      </label>
+      <label>ชื่อ
+        <input id="firstName" type="text" placeholder="ชื่อ" required/>
+      </label>
+      <label>สกุล
+        <input id="lastName" type="text" placeholder="นามสกุล" required/>
+      </label>
+      <label>สาขาวิชา
+        <input id="major" type="text" placeholder="เช่น IT / CS / ELEC" required/>
+      </label>
+      <label>เบอร์โทร
+        <input id="phone" type="tel" placeholder="0812345678" pattern="^[0-9]{9,10}$" required/>
+      </label>
+      <label>อีเมล
+        <input id="email" type="email" placeholder="name@example.com" required/>
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="btn primary">💾 บันทึก</button>
+        <a class="btn" href="#/students">📋 ไปที่รายการ</a>
+      </div>
+      <p id="form-msg" class="form-msg" role="alert"></p>
+    </form>
+  </main>
+</section>
+
+<!-- STUDENTS -->
+<section id="view-students" class="hidden">
+  <main class="container">
+    <h1>ข้อมูลนักศึกษา</h1>
+    <div class="toolbar card">
+      <input id="search" type="search" placeholder="ค้นหาชื่อ / นามสกุล / รหัสนักศึกษา..." />
+      <div class="toolbar-actions">
+        <button id="export-json" class="btn">⬇️ Export JSON</button>
+        <button id="clear-all" class="btn danger">🗑️ ลบทั้งหมด</button>
+      </div>
+    </div>
+    <div class="table-wrapper card">
+      <table class="table" id="students-table">
+        <thead><tr>
+          <th>รหัส</th><th>ชื่อ-สกุล</th><th>สาขา</th><th>เบอร์</th><th>อีเมล</th><th class="center">จัดการ</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <p id="empty" class="muted">ยังไม่มีข้อมูล ลองเพิ่มที่หน้า <a href="#/add">Add Student</a></p>
+    </div>
+  </main>
+</section>
+
+<footer class="footer">© 2025 Student Management System (Front-end, Single-File)</footer>
+
+<script>
+/* ========= Keys ========= */
+const LS_USERS = 'sms_users_v1';
+const LS_AUTH  = 'sms_auth_v1';
+const LS_STUDS = 'sms_students_v1';
+
+/* ========= Helpers ========= */
+const $ = (s,root=document)=>root.querySelector(s);
+const $$= (s,root=document)=>Array.from(root.querySelectorAll(s));
+function loadJSON(k,fb){ try{return JSON.parse(localStorage.getItem(k)) ?? fb}catch{return fb} }
+function saveJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+
+/* Simple password score 0..4 */
+function pwScore(p){ let s=0; if(p.length>=8)s++; if(/[A-Z]/.test(p)&&/[a-z]/.test(p))s++; if(/\d/.test(p))s++; if(/[^\w\s]/.test(p))s++; return s; }
+/* Hash (SHA-256 hex) */
+async function sha256Hex(text){ const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)); return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+
+/* ========= Router (hash-based) ========= */
+const routes = {
+  '#/login':'view-login',
+  '#/register':'view-register',
+  '#/home':'view-home',
+  '#/add':'view-add',
+  '#/students':'view-students'
+};
+function go(hash){
+  const viewId = routes[hash] || (getSession()? 'view-home':'view-login');
+  // auth gate
+  const protectedViews = ['view-home','view-add','view-students'];
+  if(protectedViews.includes(viewId) && !getSession()){
+    location.hash = '#/login'; return;
+  }
+  // topbar show/hide
+  $('#appTopbar').style.display = protectedViews.includes(viewId) ? '' : 'none';
+  // nav active
+  $$('.nav a').forEach(a=>a.classList.toggle('active', a.getAttribute('href')===hash));
+  // show current view
+  Object.values(routes).forEach(id => document.getElementById(id).classList.add('hidden'));
+  document.getElementById(viewId).classList.remove('hidden');
+  // enter hooks
+  if(viewId==='view-home') onEnterHome();
+  if(viewId==='view-students') renderTable();
+  if(viewId==='view-add') setupAddEditForm();
+}
+window.addEventListener('hashchange', ()=>go(location.hash));
+
+/* ========= Auth ========= */
+function getSession(){ return loadJSON(LS_AUTH,null) }
+function setSession(o){ saveJSON(LS_AUTH,o) }
+function clearSession(){ localStorage.removeItem(LS_AUTH) }
+
+function bindLogin(){
+  const form = $('#login-form'); if(!form) return;
+  $('#login-toggle').addEventListener('click', ()=> {
+    const el=$('#login-password'); el.type = el.type==='password'?'text':'password';
+  });
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    const u=$('#login-username').value.trim();
+    const p=$('#login-password').value;
+    const msg=$('#login-msg');
+    const users = loadJSON(LS_USERS,[]);
+    const found = users.find(x=>x.username.toLowerCase()===u.toLowerCase());
+    if(!found){ msg.textContent='ไม่พบบัญชีผู้ใช้'; msg.style.color='#ffd1a6'; return; }
+    const hash = await sha256Hex(p);
+    if(hash!==found.passHash){ msg.textContent='รหัสผ่านไม่ถูกต้อง'; msg.style.color='#ffd1a6'; return; }
+    setSession({username:found.username,name:found.name,loginAt:Date.now()});
+    msg.textContent='เข้าสู่ระบบสำเร็จ ✓'; msg.style.color='#b5ffb0';
+    setTimeout(()=> location.hash='#/home', 300);
+  });
+}
+
+function bindRegister(){
+  const form = $('#register-form'); if(!form) return;
+  const nameEl=$('#reg-name'), userEl=$('#reg-username'), passEl=$('#reg-password'), confEl=$('#reg-confirm'), agreeEl=$('#agree');
+  const barIn=$('#passBarIn'), passTxt=$('#passTxt'), submitBtn=$('#reg-submit'), msg=$('#reg-msg');
+
+  $('#togglePass').addEventListener('click', ()=>{ passEl.type = passEl.type==='password'?'text':'password' });
+  $('#toggleConfirm').addEventListener('click', ()=>{ confEl.type = confEl.type==='password'?'text':'password' });
+
+  function updateStrength(){
+    const sc = pwScore(passEl.value);
+    const labels=['อ่อนมาก','อ่อน','ปานกลาง','ดี','แข็งแรง'];
+    barIn.style.width = ['0%','25%','50%','75%','100%'][sc];
+    passTxt.textContent = 'ความแข็งแรง: ' + labels[sc];
+  }
+  function ok(){
+    return nameEl.value.trim().length>=2 &&
+           userEl.value.trim().length>=4 &&
+           passEl.value.length>=8 &&
+           confEl.value===passEl.value &&
+           agreeEl.checked;
+  }
+  [nameEl,userEl,passEl,confEl,agreeEl].forEach(el=>{
+    el.addEventListener('input', ()=>{ updateStrength(); submitBtn.disabled=!ok(); });
+    el.addEventListener('change', ()=>{ updateStrength(); submitBtn.disabled=!ok(); });
+  });
+  updateStrength(); submitBtn.disabled=!ok();
+
+  form.addEventListener('submit', async e=>{
+    e.preventDefault();
+    if(!ok()){ submitBtn.disabled=true; return; }
+    const users = loadJSON(LS_USERS,[]);
+    if(users.some(u=>u.username.toLowerCase()===userEl.value.trim().toLowerCase())){
+      msg.textContent='ชื่อผู้ใช้นี้ถูกใช้แล้ว'; msg.style.color='#ffd1a6'; return;
+    }
+    const hash = await sha256Hex(passEl.value);
+    users.push({id:Date.now().toString(36), name:nameEl.value.trim(), username:userEl.value.trim(), passHash:hash});
+    saveJSON(LS_USERS, users);
+    msg.textContent='สมัครสมาชิกสำเร็จ ✓'; msg.style.color='#b5ffb0';
+    setTimeout(()=> location.hash='#/login', 600);
+  });
+}
+
+function bindLogout(){
+  $('#logoutBtn')?.addEventListener('click', ()=>{ clearSession(); location.hash='#/login'; });
+}
+
+/* ========= Home enter (welcome & name) ========= */
+function onEnterHome(){
+  const sess = getSession(); if(sess) $('#currentUserName').textContent = sess.name || sess.username;
+  const modal = $('#welcomeModal');
+  if(!sessionStorage.getItem('welcomed') && modal){
+    modal.style.display='flex';
+    $('#closeModal').addEventListener('click', ()=> modal.style.display='none');
+    window.addEventListener('click', e=>{ if(e.target===modal) modal.style.display='none' });
+    sessionStorage.setItem('welcomed','1');
+  }
+}
+
+/* ========= Students CRUD ========= */
+function students(){ return loadJSON(LS_STUDS,[]) }
+function setStudents(arr){ saveJSON(LS_STUDS,arr) }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7) }
+
+(function seed(){
+  if(students().length===0){
+    setStudents([
+      {id:uid(), code:'66010001', firstName:'Somchai', lastName:'Jaidee', major:'IT', phone:'0812345678', email:'somchai@example.com'},
+      {id:uid(), code:'66010002', firstName:'Suda', lastName:'Meechai', major:'CS', phone:'0891112222', email:'suda@example.com'}
+    ]);
+  }
+})();
+
+function setupAddEditForm(){
+  const form = $('#student-form'); if(!form) return;
+  const params = new URLSearchParams(location.hash.split('?')[1]||'');
+  const editId = params.get('id');
+  const msg = $('#form-msg');
+  if(editId){
+    $('#form-title').textContent='แก้ไขข้อมูลนักศึกษา';
+    const s = students().find(x=>x.id===editId);
+    if(s){
+      $('#studentId').value=s.id; $('#code').value=s.code; $('#firstName').value=s.firstName; $('#lastName').value=s.lastName;
+      $('#major').value=s.major; $('#phone').value=s.phone; $('#email').value=s.email;
+    }
+  }else{
+    $('#form-title').textContent='เพิ่มข้อมูลนักศึกษา';
+    form.reset(); $('#studentId').value='';
+  }
+
+  form.onsubmit = (e)=>{
+    e.preventDefault();
+    const code=$('#code').value.trim(), firstName=$('#firstName').value.trim(),
+          lastName=$('#lastName').value.trim(), major=$('#major').value.trim(),
+          phone=$('#phone').value.trim(), email=$('#email').value.trim();
+    if(!code||!firstName||!lastName||!major||!phone||!email){ msg.textContent='กรุณากรอกข้อมูลให้ครบถ้วน'; msg.style.color='#ffd1a6'; return; }
+
+    let list = students();
+    const idCur = $('#studentId').value;
+    if(idCur){
+      const i=list.findIndex(x=>x.id===idCur);
+      if(i>-1){ list[i]={id:idCur, code, firstName, lastName, major, phone, email}; setStudents(list); msg.textContent='บันทึกการแก้ไขสำเร็จ ✓'; msg.style.color='#b5ffb0'; setTimeout(()=>location.hash='#/students',500); }
+    }else{
+      if(list.some(x=>x.code===code)){ msg.textContent='มีรหัสนักศึกษานี้แล้ว'; msg.style.color='#ffd1a6'; return; }
+      list.push({id:uid(), code, firstName, lastName, major, phone, email}); setStudents(list);
+      form.reset(); msg.textContent='เพิ่มข้อมูลสำเร็จ ✓'; msg.style.color='#b5ffb0';
+    }
+  };
+}
+
+function renderTable(){
+  const tbody = $('#tbody'); const empty = $('#empty'); if(!tbody) return;
+  const q = ($('#search')?.value||'').toLowerCase().trim();
+  const list = students().filter(s=>[s.code,s.firstName,s.lastName,s.major,s.phone,s.email].join(' ').toLowerCase().includes(q));
+  tbody.innerHTML = '';
+  if(list.length===0){ empty.style.display=''; return; } else empty.style.display='none';
+  for(const s of list){
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td>${s.code}</td>
+      <td>${s.firstName} ${s.lastName}</td>
+      <td>${s.major}</td>
+      <td>${s.phone}</td>
+      <td>${s.email}</td>
+      <td class="center">
+        <a class="btn" href="#/add?id=${encodeURIComponent(s.id)}">✏️ แก้ไข</a>
+        <button class="btn danger" data-del="${s.id}">ลบ</button>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+function bindStudentsPage(){
+  $('#search')?.addEventListener('input', renderTable);
+  $('#export-json')?.addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(students(), null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob); const a=document.createElement('a');
+    a.href=url; a.download='students.json'; a.click(); URL.revokeObjectURL(url);
+  });
+  $('#clear-all')?.addEventListener('click', ()=>{
+    if(confirm('ลบข้อมูลทั้งหมดในระบบ (localStorage)?')){ setStudents([]); renderTable(); }
+  });
+  $('#students-table')?.addEventListener('click', e=>{
+    const btn = e.target.closest('button[data-del]'); if(!btn) return;
+    const id = btn.getAttribute('data-del');
+    if(confirm('ยืนยันการลบข้อมูลนี้หรือไม่?')){
+      setStudents(students().filter(x=>x.id!==id)); renderTable();
+    }
+  });
+}
+
+/* ========= App boot ========= */
+function init(){
+  bindLogin(); bindRegister(); bindLogout(); bindStudentsPage();
+  if(!location.hash) location.hash = '#/login';
+  go(location.hash);
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
